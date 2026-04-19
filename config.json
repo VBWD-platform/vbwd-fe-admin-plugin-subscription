@@ -1,0 +1,22 @@
+{
+  "trial_days": {
+    "type": "integer",
+    "default": 14,
+    "description": "Default trial period in days"
+  },
+  "max_subscriptions_per_user": {
+    "type": "integer",
+    "default": 10,
+    "description": "Maximum concurrent subscriptions per user"
+  },
+  "allow_downgrade": {
+    "type": "boolean",
+    "default": true,
+    "description": "Allow users to downgrade to a cheaper plan"
+  },
+  "proration_enabled": {
+    "type": "boolean",
+    "default": true,
+    "description": "Calculate prorated credits on plan changes"
+  }
+}
