@@ -76,6 +76,14 @@ export const subscriptionAdminPlugin: IPlugin = {
       meta: { requiredPermission: 'subscription.subscriptions.view' },
     });
 
+    // Admin dashboard widget — component name "SubscriptionAdminWidget"
+    // matches the "subscription-admin" plugin key via Dashboard.vue's
+    // normalised-name filter.
+    sdk.addComponent(
+      'SubscriptionAdminWidget',
+      () => import('./src/components/SubscriptionAdminWidget.vue') as Promise<{ default: unknown }>,
+    );
+
     // Routes registered here (install runs once).
     // Nav sections registered in activate() to respect enable/disable.
   },
