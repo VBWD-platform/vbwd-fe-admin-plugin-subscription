@@ -120,3 +120,8 @@ export const subscriptionAdminPlugin: IPlugin = {
     extensionRegistry.unregister('subscription-admin');
   },
 };
+
+// Default export — loader falls back to scanning named exports when this
+// is missing, which is non-deterministic under some bundler hot-reload
+// paths. Matches the cms-admin pattern for robustness.
+export default subscriptionAdminPlugin;
