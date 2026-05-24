@@ -96,6 +96,12 @@ export const subscriptionAdminPlugin: IPlugin = {
           () => import('./src/components/UserSubscriptionSection.vue')
         ),
       ],
+      // "Subscription Info" block on the core Invoice Details page.
+      invoiceDetailSections: [
+        defineAsyncComponent(
+          () => import('./src/components/InvoiceSubscriptionSection.vue')
+        ),
+      ],
       sectionItems: {
         sales: [
           { label: 'Subscriptions', to: '/admin/subscriptions', position: 'before:invoices', requiredPermission: 'subscription.subscriptions.view' },
