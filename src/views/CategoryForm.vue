@@ -183,7 +183,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { useCategoryAdminStore } from '@/stores/categoryAdmin';
+import { useCategoryAdminStore } from '../stores/categoryAdmin';
 
 const { t } = useI18n();
 const route = useRoute();

@@ -185,8 +185,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
-import { useSubscriptionsStore, type CreateSubscriptionData } from '@/stores/subscriptions';
-import { usePlanAdminStore, type AdminPlan } from '@/stores/planAdmin';
+import { useSubscriptionsStore, type CreateSubscriptionData } from '../stores/subscriptions';
+import { usePlanAdminStore, type AdminPlan } from '../stores/planAdmin';
 import { useUsersStore, type User } from '@/stores/users';
 
 const router = useRouter();

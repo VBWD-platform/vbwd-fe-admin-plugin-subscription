@@ -314,8 +314,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
-import { usePlanAdminStore } from '@/stores/planAdmin';
-import { useCategoryAdminStore, type AdminCategory } from '@/stores/categoryAdmin';
+import { usePlanAdminStore } from '../stores/planAdmin';
+import { useCategoryAdminStore, type AdminCategory } from '../stores/categoryAdmin';
 import { extensionRegistry } from '@/plugins/extensionRegistry';
 
 const { t } = useI18n();

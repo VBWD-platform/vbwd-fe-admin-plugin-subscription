@@ -13,7 +13,7 @@ export const subscriptionAdminPlugin: IPlugin = {
       path: 'plans',
       name: 'plans',
       component: () => import('./src/views/Plans.vue'),
-      meta: { requiredPermission: 'subscription.plans.view' },
+      meta: { requiredPermission: 'subscription.plans.view', title: 'Plan Management' },
     });
     sdk.addRoute({
       path: 'plans/new',
@@ -61,7 +61,7 @@ export const subscriptionAdminPlugin: IPlugin = {
       path: 'subscriptions',
       name: 'subscriptions',
       component: () => import('./src/views/Subscriptions.vue'),
-      meta: { requiredPermission: 'subscription.subscriptions.view' },
+      meta: { requiredPermission: 'subscription.subscriptions.view', title: 'Subscriptions' },
     });
     sdk.addRoute({
       path: 'subscriptions/create',
@@ -90,6 +90,12 @@ export const subscriptionAdminPlugin: IPlugin = {
 
   activate() {
     extensionRegistry.register('subscription-admin', {
+      // Subscription summary block on the core User Details page.
+      userDetailsSections: [
+        defineAsyncComponent(
+          () => import('./src/components/UserSubscriptionSection.vue')
+        ),
+      ],
       sectionItems: {
         sales: [
           { label: 'Subscriptions', to: '/admin/subscriptions', position: 'before:invoices', requiredPermission: 'subscription.subscriptions.view' },
@@ -111,6 +117,36 @@ export const subscriptionAdminPlugin: IPlugin = {
             () => import('./src/components/LinkedPlanField.vue')
           ),
           userOnly: true,
+          fields: ['linked_plan_slug'],
+        },
+      ],
+      accessLevelUserColumns: [
+        {
+          id: 'linked-plan',
+          header: 'Linked Plan',
+          component: defineAsyncComponent(
+            () => import('./src/components/LinkedPlanColumn.vue')
+          ),
+        },
+      ],
+      userEditTabs: [
+        {
+          id: 'subscriptions',
+          label: 'Subscriptions',
+          order: 10,
+          component: defineAsyncComponent(
+            () => import('./src/components/UserSubscriptionsTab.vue')
+          ),
+          requiredPermission: 'subscription.subscriptions.view',
+        },
+        {
+          id: 'addons',
+          label: 'Add-ons',
+          order: 20,
+          component: defineAsyncComponent(
+            () => import('./src/components/UserAddonsTab.vue')
+          ),
+          requiredPermission: 'subscription.subscriptions.view',
         },
       ],
     });

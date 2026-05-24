@@ -299,8 +299,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { usePlanAdminStore } from '@/stores/planAdmin';
-import CategoriesTab from '@/components/CategoriesTab.vue';
+import { usePlanAdminStore } from '../stores/planAdmin';
+import CategoriesTab from '../components/CategoriesTab.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

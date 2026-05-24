@@ -281,9 +281,9 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
-import { useAddonStore } from '@/stores/addons';
-import { usePlanAdminStore } from '@/stores/planAdmin';
-import type { AdminPlan } from '@/stores/planAdmin';
+import { useAddonStore } from '../stores/addons';
+import { usePlanAdminStore } from '../stores/planAdmin';
+import type { AdminPlan } from '../stores/planAdmin';
 
 const { t } = useI18n();
 const route = useRoute();

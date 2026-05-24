@@ -133,7 +133,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useCategoryAdminStore } from '@/stores/categoryAdmin';
+import { useCategoryAdminStore } from '../stores/categoryAdmin';
 
 const props = defineProps<{
   active: boolean;

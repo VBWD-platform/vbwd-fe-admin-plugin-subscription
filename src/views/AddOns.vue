@@ -263,7 +263,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
-import { useAddonStore } from '@/stores/addons';
+import { useAddonStore } from '../stores/addons';
 
 const { t } = useI18n();
 const router = useRouter();

@@ -179,7 +179,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
-import { useSubscriptionsStore } from '@/stores/subscriptions';
+import { useSubscriptionsStore } from '../stores/subscriptions';
 
 const route = useRoute();
 const router = useRouter();
