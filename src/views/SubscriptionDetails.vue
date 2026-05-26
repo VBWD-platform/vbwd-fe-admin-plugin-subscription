@@ -156,8 +156,13 @@
           </p>
         </div>
 
+        <!-- Cancellable for any non-terminal status. Without TRIALING here,
+             admins couldn't cancel a free-trial subscription, blocking the
+             user from switching plans (the category ``is_single`` guard
+             rejects new sub creation while ACTIVE *or* TRIALING is in
+             flight). PAUSED/PENDING are likewise reasonable to cancel. -->
         <div
-          v-if="canManage && subscription.status === 'ACTIVE'"
+          v-if="canManage && isCancellableStatus(subscription.status)"
           class="actions-section"
         >
           <button
@@ -237,6 +242,14 @@ function formatStatus(status: string): string {
   const translated = t(statusKey);
   // If translation key not found, return original status
   return translated === statusKey ? status : translated;
+}
+
+// Any non-terminal status is cancellable. Trialing must be included so an
+// admin (or user) can cancel a free-trial subscription and free the
+// category ``is_single`` slot for a new plan.
+const CANCELLABLE_STATUSES = new Set(['ACTIVE', 'TRIALING', 'PAUSED', 'PENDING']);
+function isCancellableStatus(status: string | undefined | null): boolean {
+  return !!status && CANCELLABLE_STATUSES.has(status.toUpperCase());
 }
 
 function formatDate(dateString?: string): string {
