@@ -50,7 +50,7 @@ const mockAddonSubs = [
 
 function setupApiMocks(addons: unknown = { addon_subscriptions: mockAddonSubs }) {
   vi.mocked(api.get).mockImplementation((url: string) => {
-    if (url === '/admin/users/1/addons') {
+    if (url === '/admin/subscription/users/1/addons') {
       return Promise.resolve(addons);
     }
     return Promise.resolve({});
@@ -83,7 +83,7 @@ describe('UserAddonsTab (plugin)', () => {
     setupApiMocks();
     mountTab(true);
     await flushPromises();
-    expect(api.get).toHaveBeenCalledWith('/admin/users/1/addons');
+    expect(api.get).toHaveBeenCalledWith('/admin/subscription/users/1/addons');
   });
 
   it('does not fetch while inactive, then fetches on activation', async () => {
@@ -94,7 +94,7 @@ describe('UserAddonsTab (plugin)', () => {
 
     await wrapper.setProps({ active: true });
     await flushPromises();
-    expect(api.get).toHaveBeenCalledWith('/admin/users/1/addons');
+    expect(api.get).toHaveBeenCalledWith('/admin/subscription/users/1/addons');
   });
 
   it('renders addon subscriptions in the table', async () => {

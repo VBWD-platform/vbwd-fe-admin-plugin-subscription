@@ -152,7 +152,7 @@ const filteredAddons = computed(() => {
 async function fetchUserAddons(): Promise<void> {
   addonsLoading.value = true;
   try {
-    const response = await api.get(`/admin/users/${props.userId}/addons`) as { addon_subscriptions: UserAddonSub[] };
+    const response = await api.get(`/admin/subscription/users/${props.userId}/addons`) as { addon_subscriptions: UserAddonSub[] };
     userAddonSubs.value = response.addon_subscriptions || [];
     loaded.value = true;
   } catch {
