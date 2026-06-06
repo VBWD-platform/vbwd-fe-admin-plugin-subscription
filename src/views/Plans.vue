@@ -93,6 +93,14 @@
           {{ $t('plans.bulkDeactivate') }}
         </button>
         <button
+          class="bulk-btn copy"
+          :disabled="processingBulk"
+          data-testid="bulk-copy-btn"
+          @click="handleBulkCopy"
+        >
+          {{ $t('plans.bulkCopy') }}
+        </button>
+        <button
           class="bulk-btn delete"
           :disabled="processingBulk"
           data-testid="bulk-delete-btn"
@@ -492,6 +500,44 @@ async function handleBulkActivate(): Promise<void> {
   }
 }
 
+async function handleBulkCopy(): Promise<void> {
+  if (selectedPlans.value.size === 0) return;
+
+  if (!confirm(`Copy ${selectedPlans.value.size} plan(s)?`)) {
+    return;
+  }
+
+  processingBulk.value = true;
+  bulkErrorMessage.value = '';
+  bulkSuccessMessage.value = '';
+
+  try {
+    const planIds = Array.from(selectedPlans.value);
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const planId of planIds) {
+      try {
+        await planStore.copyPlan(planId);
+        successCount++;
+      } catch {
+        errorCount++;
+      }
+    }
+
+    selectedPlans.value.clear();
+    bulkSuccessMessage.value = `${successCount} plan(s) copied${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+    await fetchPlans();
+    setTimeout(() => {
+      bulkSuccessMessage.value = '';
+    }, 3000);
+  } catch (err) {
+    bulkErrorMessage.value = (err as Error).message || 'Failed to copy plans';
+  } finally {
+    processingBulk.value = false;
+  }
+}
+
 async function handleBulkDeactivate(): Promise<void> {
   if (selectedPlans.value.size === 0) return;
 
@@ -877,6 +923,15 @@ onMounted(() => {
 
 .bulk-btn.deactivate:hover:not(:disabled) {
   background: #ffeaa7;
+}
+
+.bulk-btn.copy {
+  background: var(--vbwd-color-info-bg, #d1ecf1);
+  color: var(--vbwd-color-info-text, #0c5460);
+}
+
+.bulk-btn.copy:hover:not(:disabled) {
+  background: var(--vbwd-color-info-bg-hover, #bee5eb);
 }
 
 .bulk-btn.delete {

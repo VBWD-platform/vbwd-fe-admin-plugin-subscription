@@ -267,4 +267,86 @@ describe('Plans.vue', () => {
       params: { include_archived: true }
     });
   });
+
+  describe('bulk copy', () => {
+    it('does not show the bulk copy button when no plans are selected', async () => {
+      const wrapper = mount(Plans, {
+        global: {
+          plugins: [router]
+        }
+      });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="bulk-copy-btn"]').exists()).toBe(false);
+    });
+
+    it('shows the bulk copy button when at least one plan is selected', async () => {
+      const wrapper = mount(Plans, {
+        global: {
+          plugins: [router]
+        }
+      });
+
+      await flushPromises();
+
+      await wrapper.find('[data-testid="select-plan-1"]').setValue(true);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="bulk-copy-btn"]').exists()).toBe(true);
+    });
+
+    it('copies each selected plan once, then refreshes and shows a success message', async () => {
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      vi.mocked(api.post).mockResolvedValue({ plan: { id: 'copy-1' } });
+
+      const wrapper = mount(Plans, {
+        global: {
+          plugins: [router]
+        }
+      });
+
+      await flushPromises();
+
+      await wrapper.find('[data-testid="select-plan-1"]').setValue(true);
+      await wrapper.find('[data-testid="select-plan-2"]').setValue(true);
+      await flushPromises();
+
+      vi.mocked(api.get).mockClear();
+
+      await wrapper.find('[data-testid="bulk-copy-btn"]').trigger('click');
+      await flushPromises();
+
+      // copyPlan -> POST /admin/tarif-plans/<id>/copy once per selected id
+      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans/1/copy');
+      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans/2/copy');
+      expect(vi.mocked(api.post).mock.calls.filter(call => String(call[0]).endsWith('/copy')).length).toBe(2);
+
+      // list refreshed
+      expect(api.get).toHaveBeenCalledWith('/admin/tarif-plans', {
+        params: { include_archived: false }
+      });
+
+      // success message shown
+      expect(wrapper.find('[data-testid="bulk-success-message"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="bulk-success-message"]').text()).toContain('2');
+
+      confirmSpy.mockRestore();
+    });
+
+    it('exposes copy only via the bulk bar — no per-row copy button', async () => {
+      const wrapper = mount(Plans, {
+        global: {
+          plugins: [router]
+        }
+      });
+
+      await flushPromises();
+
+      // No per-row copy/duplicate buttons anywhere in the list.
+      expect(wrapper.find('[data-testid="copy-plan-1"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="duplicate-plan-1"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="copy-button"]').exists()).toBe(false);
+    });
+  });
 });

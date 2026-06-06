@@ -256,16 +256,6 @@
                 >
                   {{ reactivating ? $t('plans.reactivating') : $t('plans.reactivatePlan') }}
                 </button>
-                <button
-                  v-if="canManage && isEdit"
-                  type="button"
-                  data-testid="copy-button"
-                  class="copy-btn"
-                  :disabled="copying"
-                  @click="handleCopy"
-                >
-                  {{ copying ? $t('plans.copying') : $t('plans.copyPlan') }}
-                </button>
               </div>
               <div class="form-actions-right">
                 <button
@@ -337,7 +327,6 @@ const submitError = ref<string | null>(null);
 const submitting = ref(false);
 const archiving = ref(false);
 const reactivating = ref(false);
-const copying = ref(false);
 const planIsActive = ref(true);
 const planCategoryIds = ref<string[]>([]);
 const allCategories = ref<AdminCategory[]>([]);
@@ -498,19 +487,6 @@ async function handleReactivate(): Promise<void> {
   }
 }
 
-async function handleCopy(): Promise<void> {
-  if (!isEdit.value) return;
-
-  copying.value = true;
-  try {
-    const newPlan = await planStore.copyPlan(planId.value);
-    router.push(`/admin/plans/${newPlan.id}/edit`);
-  } catch (error) {
-    submitError.value = (error as Error).message || t('plans.failedToCopyPlan');
-  } finally {
-    copying.value = false;
-  }
-}
 
 const availableCategories = computed(() => {
   return allCategories.value.filter(c => !planCategoryIds.value.includes(c.id));
@@ -893,8 +869,7 @@ onMounted(async () => {
 }
 
 .archive-btn:disabled,
-.reactivate-btn:disabled,
-.copy-btn:disabled {
+.reactivate-btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
 }
@@ -911,19 +886,5 @@ onMounted(async () => {
 
 .reactivate-btn:hover:not(:disabled) {
   background: #218838;
-}
-
-.copy-btn {
-  padding: 10px 20px;
-  background: #17a2b8;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.copy-btn:hover:not(:disabled) {
-  background: #138496;
 }
 </style>
