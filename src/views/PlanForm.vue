@@ -499,7 +499,9 @@ const assignedCategories = computed(() => {
 const visiblePlanTabs = computed(() => {
   const assignedSlugs = assignedCategories.value.map(c => c.slug);
   return extensionRegistry.getPlanTabSections().filter(tab => {
-    if (!tab.requiredCategorySlugs || tab.requiredCategorySlugs.length === 0) return true;
+    // `undefined` → always show. An explicit (possibly empty) list gates on a
+    // match, so configuring zero software categories hides the tab everywhere.
+    if (tab.requiredCategorySlugs === undefined) return true;
     return tab.requiredCategorySlugs.some(s => assignedSlugs.includes(s));
   });
 });
