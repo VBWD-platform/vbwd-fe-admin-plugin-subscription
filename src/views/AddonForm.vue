@@ -273,6 +273,22 @@
         </div>
       </div>
     </form>
+
+    <!-- Tags + Custom fields (S77, generic editors) -->
+    <div
+      v-if="isEdit && addonId"
+      class="form-section"
+      data-testid="addon-tags-custom-fields"
+    >
+      <TagPicker
+        entity-type="addon"
+        :entity-id="addonId"
+      />
+      <CustomFieldsEditor
+        entity-type="addon"
+        :entity-id="addonId"
+      />
+    </div>
   </div>
 </template>
 
@@ -284,6 +300,8 @@ import { useAuthStore } from '@/stores/auth';
 import { useAddonStore } from '../stores/addons';
 import { usePlanAdminStore } from '../stores/planAdmin';
 import type { AdminPlan } from '../stores/planAdmin';
+import TagPicker from '@/components/TagPicker.vue';
+import CustomFieldsEditor from '@/components/CustomFieldsEditor.vue';
 
 const { t } = useI18n();
 const route = useRoute();

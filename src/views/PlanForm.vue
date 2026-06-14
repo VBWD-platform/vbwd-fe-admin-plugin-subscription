@@ -234,6 +234,43 @@
               </div>
             </div>
 
+            <!-- Taxes -->
+            <div
+              class="taxes-section"
+              data-testid="plan-taxes-section"
+            >
+              <h3>{{ $t('plans.taxes.title') }}</h3>
+              <DualListSelector
+                v-model="taxIds"
+                testid="tax"
+                :options="taxOptions"
+                :available-label="$t('plans.taxes.available')"
+                :assigned-label="$t('plans.taxes.assigned')"
+                :empty-available-label="$t('plans.taxes.allAssigned')"
+                :empty-assigned-label="$t('plans.taxes.noneAssigned')"
+              />
+
+              <!-- Price display override (S72.4) -->
+              <div class="form-group">
+                <label for="plan-price-display-mode">{{ $t('plans.priceDisplay.label') }}</label>
+                <select
+                  id="plan-price-display-mode"
+                  v-model="formData.price_display_mode"
+                  data-testid="plan-price-display-mode"
+                >
+                  <option value="">
+                    {{ $t('plans.priceDisplay.inherit') }}
+                  </option>
+                  <option value="netto">
+                    {{ $t('plans.priceDisplay.netto') }}
+                  </option>
+                  <option value="brutto">
+                    {{ $t('plans.priceDisplay.brutto') }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
             <div class="form-actions">
               <div class="form-actions-left">
                 <button
@@ -279,6 +316,22 @@
               </div>
             </div>
           </form>
+
+          <!-- Tags + Custom fields (S77, generic editors) -->
+          <div
+            v-if="isEdit && planId"
+            class="form-section"
+            data-testid="plan-tags-custom-fields"
+          >
+            <TagPicker
+              entity-type="tarif_plan"
+              :entity-id="planId"
+            />
+            <CustomFieldsEditor
+              entity-type="tarif_plan"
+              :entity-id="planId"
+            />
+          </div>
         </div>
 
         <!-- Plugin tabs -->
@@ -307,6 +360,10 @@ import { useAuthStore } from '@/stores/auth';
 import { usePlanAdminStore } from '../stores/planAdmin';
 import { useCategoryAdminStore, type AdminCategory } from '../stores/categoryAdmin';
 import { extensionRegistry } from '@/plugins/extensionRegistry';
+import DualListSelector from '@/components/DualListSelector.vue';
+import TagPicker from '@/components/TagPicker.vue';
+import CustomFieldsEditor from '@/components/CustomFieldsEditor.vue';
+import { useTaxOptions } from '@/composables/useTaxOptions';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -332,12 +389,17 @@ const planCategoryIds = ref<string[]>([]);
 const allCategories = ref<AdminCategory[]>([]);
 const activeTab = ref<string>('details');
 
+const { taxOptions, loadTaxOptions } = useTaxOptions();
+const taxIds = ref<string[]>([]);
+
 const formData = ref({
   name: '',
   price: 0,
   billing_period: '' as string,
   trial_days: 0,
-  features: [] as string[] | Record<string, unknown>
+  features: [] as string[] | Record<string, unknown>,
+  // '' = inherit the global mode; 'netto'/'brutto' = per-plan override (S72.4)
+  price_display_mode: '' as string
 });
 
 const featuresText = computed({
@@ -395,9 +457,12 @@ async function fetchPlan(): Promise<void> {
         price: priceValue,
         billing_period: response.billing_period || '',
         trial_days: response.trial_days || 0,
-        features: response.features || []
+        features: response.features || [],
+        price_display_mode: (response as { price_display_mode?: string | null }).price_display_mode || ''
       };
       planIsActive.value = response.is_active !== false;
+      const planTaxIds = (response as { tax_ids?: string[] }).tax_ids;
+      taxIds.value = Array.isArray(planTaxIds) ? [...planTaxIds] : [];
     }
   } catch (error) {
     fetchError.value = (error as Error).message || t('plans.failedToLoadPlan');
@@ -438,7 +503,9 @@ async function handleSubmit(): Promise<void> {
       price: formData.value.price,
       billing_period: billingPeriod,
       trial_days: formData.value.trial_days || 0,
-      features: formData.value.features
+      features: formData.value.features,
+      tax_ids: [...taxIds.value],
+      price_display_mode: formData.value.price_display_mode || null
     };
 
     if (isEdit.value) {
@@ -525,6 +592,10 @@ async function unassignCategory(categoryId: string): Promise<void> {
 }
 
 onMounted(async () => {
+  // Load the tax catalog independently so a slow/failed tax fetch never blocks
+  // the plan load or its loading/error states.
+  loadTaxOptions();
+
   if (isEdit.value) {
     await fetchPlan();
 

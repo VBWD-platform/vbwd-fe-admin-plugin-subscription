@@ -6,6 +6,8 @@ import AddonForm from '../../src/views/AddonForm.vue';
 import { useAddonStore } from '../../src/stores/addons';
 import { usePlanAdminStore } from '../../src/stores/planAdmin';
 import { configureAuthStore, useAuthStore } from '@/stores/auth';
+import TagPicker from '@/components/TagPicker.vue';
+import CustomFieldsEditor from '@/components/CustomFieldsEditor.vue';
 
 vi.mock('@/api', () => ({
   api: {
@@ -369,5 +371,34 @@ describe('AddonForm View', () => {
 
     expect(wrapper.find('[data-testid="plan-checkboxes"]').exists()).toBe(false);
     expect(wrapper.text()).toContain('addOns.noPlansAvailable');
+  });
+
+  // S77: Tags + Custom fields generic editors (edit mode only)
+  it('mounts TagPicker + CustomFieldsEditor with entity_type=addon in edit mode', async () => {
+    const store = useAddonStore();
+    store.fetchAddon = vi.fn().mockResolvedValue(mockAddon);
+
+    const wrapper = mountForm(true);
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="addon-tags-custom-fields"]');
+    expect(block.exists()).toBe(true);
+
+    const tagPicker = wrapper.findComponent(TagPicker);
+    expect(tagPicker.exists()).toBe(true);
+    expect(tagPicker.props('entityType')).toBe('addon');
+    expect(tagPicker.props('entityId')).toBe('abc-123');
+
+    const cfEditor = wrapper.findComponent(CustomFieldsEditor);
+    expect(cfEditor.exists()).toBe(true);
+    expect(cfEditor.props('entityType')).toBe('addon');
+    expect(cfEditor.props('entityId')).toBe('abc-123');
+  });
+
+  it('does not show tags/custom-fields block in create mode', async () => {
+    const wrapper = mountForm(false);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="addon-tags-custom-fields"]').exists()).toBe(false);
   });
 });

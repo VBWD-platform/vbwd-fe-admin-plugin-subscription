@@ -5,6 +5,12 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import PlanForm from '../../src/views/PlanForm.vue';
 import { api } from '@/api';
 import { configureAuthStore, useAuthStore } from '@/stores/auth';
+import { __resetTaxOptionsCache } from '@/composables/useTaxOptions';
+
+const taxRates = [
+  { id: 'tax-1', code: 'VAT19', name: 'Standard VAT', rate: '19.00', is_active: true },
+  { id: 'tax-2', code: 'OLD', name: 'Retired', rate: '7.00', is_active: false },
+];
 
 // Mock the API module
 vi.mock('@/api', () => ({
@@ -47,6 +53,7 @@ describe('PlanForm.vue', () => {
       token: 'test-token',
     });
     vi.clearAllMocks();
+    __resetTaxOptionsCache();
 
     router = createRouter({
       history: createMemoryHistory(),
@@ -303,6 +310,150 @@ describe('PlanForm.vue', () => {
 
       const submitBtn = wrapper.find('[data-testid="submit-button"]');
       expect(submitBtn.attributes('disabled')).toBeDefined();
+    });
+  });
+
+  describe('Taxes block (S72.3)', () => {
+    function mockApiByUrl(plan: Record<string, unknown> | null): void {
+      vi.mocked(api.get).mockImplementation((url: string) => {
+        if (url === '/admin/tax/rates') return Promise.resolve({ rates: taxRates });
+        if (url.startsWith('/admin/tarif-plans/')) return Promise.resolve({ plan });
+        return Promise.resolve({});
+      });
+    }
+
+    it('lists active taxes from /admin/tax/rates in the Details tab', async () => {
+      mockApiByUrl(null);
+      await router.push('/admin/plans/new');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      const taxBlock = wrapper.find('[data-testid="plan-taxes-section"]');
+      expect(taxBlock.exists()).toBe(true);
+      // Active tax appears as an available option; the inactive one is filtered out.
+      expect(wrapper.find('[data-testid="dual-list-available-tax-1"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="dual-list-available-tax-2"]').exists()).toBe(false);
+    });
+
+    it('pre-selects the plan\'s assigned tax_ids on edit', async () => {
+      mockApiByUrl({ ...mockPlan, tax_ids: ['tax-1'] });
+      await router.push('/admin/plans/1');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="dual-list-assigned-tax-1"]').exists()).toBe(true);
+    });
+
+    it('sends tax_ids in the create payload', async () => {
+      mockApiByUrl(null);
+      vi.mocked(api.post).mockResolvedValue({ plan_id: 'new-plan-id' });
+      await router.push('/admin/plans/new');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="plan-name"]').setValue('New Plan');
+      await wrapper.find('[data-testid="plan-price"]').setValue('19.99');
+      await wrapper.find('[data-testid="plan-billing"]').setValue('MONTHLY');
+      await wrapper.find('[data-testid="dual-list-assign-tax-1"]').trigger('click');
+
+      await wrapper.find('[data-testid="submit-button"]').trigger('click');
+      await flushPromises();
+
+      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans', expect.objectContaining({
+        tax_ids: ['tax-1'],
+      }));
+    });
+
+    it('sends the edited tax_ids in the update payload', async () => {
+      mockApiByUrl({ ...mockPlan, tax_ids: ['tax-1'] });
+      vi.mocked(api.put).mockResolvedValue({ message: 'updated' });
+      await router.push('/admin/plans/1');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      // Remove the pre-selected tax.
+      await wrapper.find('[data-testid="dual-list-unassign-tax-1"]').trigger('click');
+      await wrapper.find('[data-testid="submit-button"]').trigger('click');
+      await flushPromises();
+
+      expect(api.put).toHaveBeenCalledWith('/admin/tarif-plans/1', expect.objectContaining({
+        tax_ids: [],
+      }));
+    });
+  });
+
+  describe('Price display override (S72.4)', () => {
+    function mockApiByUrl(plan: Record<string, unknown> | null): void {
+      vi.mocked(api.get).mockImplementation((url: string) => {
+        if (url === '/admin/tax/rates') return Promise.resolve({ rates: taxRates });
+        if (url.startsWith('/admin/tarif-plans/')) return Promise.resolve({ plan });
+        return Promise.resolve({});
+      });
+    }
+
+    it('defaults to Inherit (empty) when price_display_mode is null', async () => {
+      mockApiByUrl(null);
+      await router.push('/admin/plans/new');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      const select = wrapper.find('[data-testid="plan-price-display-mode"]');
+      expect(select.exists()).toBe(true);
+      // The Inherit option (empty value) is the default selection.
+      expect((select.element as HTMLSelectElement).selectedIndex).toBe(0);
+    });
+
+    it('pre-selects the plan\'s price_display_mode on edit', async () => {
+      mockApiByUrl({ ...mockPlan, price_display_mode: 'netto' });
+      await router.push('/admin/plans/1');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      const select = wrapper.find('[data-testid="plan-price-display-mode"]');
+      expect((select.element as HTMLSelectElement).value).toBe('netto');
+    });
+
+    it('sends price_display_mode=null when Inherit is selected', async () => {
+      mockApiByUrl(null);
+      vi.mocked(api.post).mockResolvedValue({ plan_id: 'new-plan-id' });
+      await router.push('/admin/plans/new');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="plan-name"]').setValue('New Plan');
+      await wrapper.find('[data-testid="plan-price"]').setValue('19.99');
+      await wrapper.find('[data-testid="plan-billing"]').setValue('MONTHLY');
+
+      await wrapper.find('[data-testid="submit-button"]').trigger('click');
+      await flushPromises();
+
+      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans', expect.objectContaining({
+        price_display_mode: null,
+      }));
+    });
+
+    it('sends the selected override in the update payload', async () => {
+      mockApiByUrl({ ...mockPlan, price_display_mode: null });
+      vi.mocked(api.put).mockResolvedValue({ message: 'updated' });
+      await router.push('/admin/plans/1');
+
+      const wrapper = mount(PlanForm, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="plan-price-display-mode"]').setValue('brutto');
+      await wrapper.find('[data-testid="submit-button"]').trigger('click');
+      await flushPromises();
+
+      expect(api.put).toHaveBeenCalledWith('/admin/tarif-plans/1', expect.objectContaining({
+        price_display_mode: 'brutto',
+      }));
     });
   });
 });
