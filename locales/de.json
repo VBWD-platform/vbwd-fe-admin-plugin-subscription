@@ -1,0 +1,22 @@
+{
+  "subscriptionAdmin": {
+    "tariffPlanWidget": {
+      "sourceMode": "Plan source",
+      "sourceModeOption": {
+        "category": "By category",
+        "slugs": "Exact plan slugs"
+      },
+      "category": "Plan category",
+      "categoryAll": "All categories",
+      "categoryHint": "Show every plan attached to this category.",
+      "plans": "Plans to show",
+      "defaultView": "Default view",
+      "defaultViewOption": {
+        "cards": "Cards",
+        "table": "Table"
+      },
+      "heading": "Heading",
+      "headingPlaceholder": "Choose your plan"
+    }
+  }
+}

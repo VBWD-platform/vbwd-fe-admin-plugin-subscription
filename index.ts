@@ -1,6 +1,14 @@
 import type { IPlugin, IPlatformSDK } from 'vbwd-view-component';
 import { defineAsyncComponent } from 'vue';
 import { extensionRegistry } from '../../vue/src/plugins/extensionRegistry';
+import en from './locales/en.json';
+import de from './locales/de.json';
+import es from './locales/es.json';
+import fr from './locales/fr.json';
+import ja from './locales/ja.json';
+import ru from './locales/ru.json';
+import th from './locales/th.json';
+import zh from './locales/zh.json';
 
 export const subscriptionAdminPlugin: IPlugin = {
   name: 'subscription-admin',
@@ -8,6 +16,32 @@ export const subscriptionAdminPlugin: IPlugin = {
   description: 'Subscription management — plans, subscriptions, add-ons, categories',
 
   install(sdk: IPlatformSDK) {
+    // Translations for the TariffPlanCollection widget editor.
+    sdk.addTranslations('en', { subscriptionAdmin: (en as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('de', { subscriptionAdmin: (de as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('es', { subscriptionAdmin: (es as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('fr', { subscriptionAdmin: (fr as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('ja', { subscriptionAdmin: (ja as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('ru', { subscriptionAdmin: (ru as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('th', { subscriptionAdmin: (th as Record<string, unknown>).subscriptionAdmin });
+    sdk.addTranslations('zh', { subscriptionAdmin: (zh as Record<string, unknown>).subscriptionAdmin });
+
+    // Register the TariffPlanCollection editor through the SHARED cms-admin
+    // widget-editor seam (OCP). Dynamic import keeps cms-admin a soft
+    // dependency — if cms-admin is absent the widget editor is simply not
+    // registered.
+    import('../cms-admin/index')
+      .then(({ registerWidgetEditor }) => {
+        import('./src/widgets/registerTariffPlanCollectionWidgetEditor').then(
+          ({ registerTariffPlanCollectionWidgetEditor }) => {
+            registerTariffPlanCollectionWidgetEditor(registerWidgetEditor);
+          },
+        );
+      })
+      .catch(() => {
+        // cms-admin plugin not installed — skip widget-editor registration.
+      });
+
     // Routes — injected as children of /admin/
     sdk.addRoute({
       path: 'plans',
