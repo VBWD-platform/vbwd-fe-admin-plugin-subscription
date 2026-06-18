@@ -184,6 +184,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { formatMoney, getOperatingCurrency } from 'vbwd-view-component';
 import { useAuthStore } from '@/stores/auth';
 import { useSubscriptionsStore, type CreateSubscriptionData } from '../stores/subscriptions';
 import { usePlanAdminStore, type AdminPlan } from '../stores/planAdmin';
@@ -275,11 +276,12 @@ function clearUser(): void {
 function formatPrice(plan: AdminPlan): string {
   if (!plan.price) return t('plans.free');
   if (typeof plan.price === 'number') {
-    return `$${plan.price.toFixed(2)}`;
+    return formatMoney(plan.price, { currency: plan.currency ?? getOperatingCurrency() });
   }
   if (plan.price.price_float !== undefined) {
-    const symbol = plan.price.currency_symbol || '$';
-    return `${symbol}${plan.price.price_float.toFixed(2)}`;
+    return formatMoney(plan.price.price_float, {
+      currency: plan.price.currency_code ?? getOperatingCurrency(),
+    });
   }
   return plan.price.price_decimal || t('plans.free');
 }

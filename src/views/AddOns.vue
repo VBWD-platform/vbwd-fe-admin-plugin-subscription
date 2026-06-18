@@ -262,6 +262,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { formatMoney, getOperatingCurrency } from 'vbwd-view-component';
 import { useAuthStore } from '@/stores/auth';
 import { useAddonStore } from '../stores/addons';
 
@@ -387,8 +388,7 @@ function formatPrice(price: string | number | undefined, currency?: string): str
   if (price === undefined || price === null) return 'N/A';
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
   if (numPrice === 0) return t('common.free') || 'Free';
-  const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency || '€';
-  return `${symbol}${numPrice.toFixed(2)}`;
+  return formatMoney(numPrice, { currency: currency ?? getOperatingCurrency() });
 }
 
 function formatBillingPeriod(period: string): string {

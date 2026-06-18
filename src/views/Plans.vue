@@ -306,6 +306,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { formatMoney, getOperatingCurrency } from 'vbwd-view-component';
 import { useAuthStore } from '@/stores/auth';
 import { usePlanAdminStore } from '../stores/planAdmin';
 import CategoriesTab from '../components/CategoriesTab.vue';
@@ -442,8 +443,7 @@ async function handleArchive(planId: string): Promise<void> {
 function formatPrice(price: number | undefined, currency?: string): string {
   if (price === undefined || price === null) return 'N/A';
   if (price === 0) return 'Free';
-  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency || '€';
-  return `${currencySymbol}${price.toFixed(2)}`;
+  return formatMoney(price, { currency: currency ?? getOperatingCurrency() });
 }
 
 function togglePlan(planId: string): void {
