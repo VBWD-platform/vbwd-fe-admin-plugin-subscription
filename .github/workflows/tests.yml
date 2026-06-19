@@ -27,6 +27,15 @@ jobs:
       - name: Overlay plugin source
         run: cp -r plugin-src/. vbwd-fe-admin/plugins/subscription-admin/
 
+      - name: Clone cms-admin peer plugin
+        # tariffPlanCollectionWidgetEditor.spec.ts registers through the shared
+        # ../../../cms-admin/index widget seam. fe-admin gitignores every plugin
+        # dir, so the checkout has none — clone the peer so the import resolves.
+        run: |
+          git clone --depth=1 \
+            https://github.com/VBWD-platform/vbwd-fe-admin-plugin-cms.git \
+            vbwd-fe-admin/plugins/cms-admin
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
