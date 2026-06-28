@@ -18,5 +18,13 @@
       "heading": "Heading",
       "headingPlaceholder": "Choose your plan"
     }
+  },
+  "subscription": {
+    "widget": {
+      "title": "การสมัครสมาชิก",
+      "active": "ใช้งานอยู่",
+      "pending": "รอดำเนินการ",
+      "cancelledThisPeriod": "ยกเลิกในรอบนี้"
+    }
   }
 }

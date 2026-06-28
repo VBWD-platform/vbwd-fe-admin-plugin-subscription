@@ -16,15 +16,16 @@ export const subscriptionAdminPlugin: IPlugin = {
   description: 'Subscription management — plans, subscriptions, add-ons, categories',
 
   install(sdk: IPlatformSDK) {
-    // Translations for the TariffPlanCollection widget editor.
-    sdk.addTranslations('en', { subscriptionAdmin: (en as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('de', { subscriptionAdmin: (de as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('es', { subscriptionAdmin: (es as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('fr', { subscriptionAdmin: (fr as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('ja', { subscriptionAdmin: (ja as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('ru', { subscriptionAdmin: (ru as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('th', { subscriptionAdmin: (th as Record<string, unknown>).subscriptionAdmin });
-    sdk.addTranslations('zh', { subscriptionAdmin: (zh as Record<string, unknown>).subscriptionAdmin });
+    // Translations: the `subscriptionAdmin` namespace (TariffPlanCollection
+    // widget editor) plus the `subscription` namespace (dashboard widget).
+    sdk.addTranslations('en', en as Record<string, unknown>);
+    sdk.addTranslations('de', de as Record<string, unknown>);
+    sdk.addTranslations('es', es as Record<string, unknown>);
+    sdk.addTranslations('fr', fr as Record<string, unknown>);
+    sdk.addTranslations('ja', ja as Record<string, unknown>);
+    sdk.addTranslations('ru', ru as Record<string, unknown>);
+    sdk.addTranslations('th', th as Record<string, unknown>);
+    sdk.addTranslations('zh', zh as Record<string, unknown>);
 
     // Register the TariffPlanCollection editor through the SHARED cms-admin
     // widget-editor seam (OCP). Dynamic import keeps cms-admin a soft

@@ -18,5 +18,13 @@
       "heading": "Heading",
       "headingPlaceholder": "Choose your plan"
     }
+  },
+  "subscription": {
+    "widget": {
+      "title": "サブスクリプション",
+      "active": "アクティブ",
+      "pending": "保留中",
+      "cancelledThisPeriod": "今期にキャンセル"
+    }
   }
 }

@@ -18,5 +18,13 @@
       "heading": "Heading",
       "headingPlaceholder": "Choose your plan"
     }
+  },
+  "subscription": {
+    "widget": {
+      "title": "订阅",
+      "active": "活跃",
+      "pending": "待处理",
+      "cancelledThisPeriod": "本期已取消"
+    }
   }
 }

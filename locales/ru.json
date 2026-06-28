@@ -18,5 +18,13 @@
       "heading": "Heading",
       "headingPlaceholder": "Choose your plan"
     }
+  },
+  "subscription": {
+    "widget": {
+      "title": "Подписки",
+      "active": "Активные",
+      "pending": "ожидают",
+      "cancelledThisPeriod": "отменено в этом периоде"
+    }
   }
 }

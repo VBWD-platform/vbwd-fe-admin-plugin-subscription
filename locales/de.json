@@ -18,5 +18,13 @@
       "heading": "Heading",
       "headingPlaceholder": "Choose your plan"
     }
+  },
+  "subscription": {
+    "widget": {
+      "title": "Abonnements",
+      "active": "Aktiv",
+      "pending": "ausstehend",
+      "cancelledThisPeriod": "in diesem Zeitraum gekündigt"
+    }
   }
 }
