@@ -12,7 +12,8 @@ import zh from './locales/zh.json';
 
 export const subscriptionAdminPlugin: IPlugin = {
   name: 'subscription-admin',
-  version: '1.0.0',
+  version: '26.6.1',
+  dependencies: ['cms-admin'],
   description: 'Subscription management — plans, subscriptions, add-ons, categories',
 
   install(sdk: IPlatformSDK) {
