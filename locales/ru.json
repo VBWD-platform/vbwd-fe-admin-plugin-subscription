@@ -20,6 +20,9 @@
     }
   },
   "subscription": {
+    "topbar": {
+      "newSubs": "{count} новых подписок"
+    },
     "widget": {
       "title": "Подписки",
       "active": "Активные",

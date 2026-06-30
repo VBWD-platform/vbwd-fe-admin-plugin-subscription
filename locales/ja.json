@@ -20,6 +20,9 @@
     }
   },
   "subscription": {
+    "topbar": {
+      "newSubs": "新規サブスク {count} 件"
+    },
     "widget": {
       "title": "サブスクリプション",
       "active": "アクティブ",

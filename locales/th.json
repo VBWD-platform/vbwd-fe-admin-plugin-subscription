@@ -20,6 +20,9 @@
     }
   },
   "subscription": {
+    "topbar": {
+      "newSubs": "{count} สมาชิกใหม่"
+    },
     "widget": {
       "title": "การสมัครสมาชิก",
       "active": "ใช้งานอยู่",

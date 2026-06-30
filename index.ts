@@ -126,6 +126,18 @@ export const subscriptionAdminPlugin: IPlugin = {
 
   activate() {
     extensionRegistry.register('subscription-admin', {
+      // Right-aligned topbar action on every admin page: "<count> new subs" →
+      // Subscriptions list. Plain icon + string (see the component).
+      topbarActions: [
+        {
+          id: 'subscription-newsubs',
+          component: defineAsyncComponent(
+            () => import('./src/components/SubscriptionNewSubsLink.vue')
+          ),
+          order: 100,
+          requiredPermission: 'subscription.subscriptions.view',
+        },
+      ],
       // Subscription summary block on the core User Details page.
       userDetailsSections: [
         defineAsyncComponent(

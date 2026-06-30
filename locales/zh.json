@@ -20,6 +20,9 @@
     }
   },
   "subscription": {
+    "topbar": {
+      "newSubs": "{count} 个新订阅"
+    },
     "widget": {
       "title": "订阅",
       "active": "活跃",
