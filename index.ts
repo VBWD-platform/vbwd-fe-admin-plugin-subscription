@@ -140,7 +140,7 @@ export const subscriptionAdminPlugin: IPlugin = {
       ],
       sectionItems: {
         sales: [
-          { label: 'Subscriptions', to: '/admin/subscriptions', position: 'before:invoices', requiredPermission: 'subscription.subscriptions.view' },
+          { label: 'Subscriptions', to: '/admin/subscriptions', icon: 'repeat', position: 'before:invoices', requiredPermission: 'subscription.subscriptions.view' },
         ],
       },
       navSections: [
@@ -148,8 +148,8 @@ export const subscriptionAdminPlugin: IPlugin = {
           id: 'tarifs',
           label: 'Tarifs',
           items: [
-            { label: 'Plans', to: '/admin/plans', requiredPermission: 'subscription.plans.view' },
-            { label: 'Add-Ons', to: '/admin/add-ons', requiredPermission: 'subscription.addons.manage' },
+            { label: 'Plans', to: '/admin/plans', icon: 'layers', requiredPermission: 'subscription.plans.view' },
+            { label: 'Add-Ons', to: '/admin/add-ons', icon: 'plus-square', requiredPermission: 'subscription.addons.manage' },
           ],
         },
       ],
