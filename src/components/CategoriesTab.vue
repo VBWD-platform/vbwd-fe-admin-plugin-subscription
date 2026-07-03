@@ -20,6 +20,45 @@
       data-testid="bulk-actions"
     >
       <span class="selection-info">{{ $t('common.selected', { count: selectedCategories.size }) }}</span>
+      <div
+        class="bulk-assign-group"
+        data-testid="bulk-assign-parent"
+      >
+        <select
+          v-model="assignParentId"
+          class="bulk-assign-select"
+          data-testid="bulk-assign-parent-select"
+          :disabled="processingBulk || parentOptions.length === 0"
+          :aria-label="$t('categories.bulkAssignParent')"
+        >
+          <option value="">
+            {{ $t('categories.selectParent') }}
+          </option>
+          <option
+            v-for="cat in parentOptions"
+            :key="cat.id"
+            :value="cat.id"
+          >
+            {{ cat.name }}
+          </option>
+        </select>
+        <button
+          class="bulk-btn assign"
+          :disabled="processingBulk || !assignParentId"
+          data-testid="bulk-assign-parent-btn"
+          @click="handleBulkAssignParent"
+        >
+          {{ $t('categories.bulkAssignParent') }}
+        </button>
+      </div>
+      <button
+        class="bulk-btn unassign"
+        :disabled="processingBulk"
+        data-testid="bulk-unassign-parent-btn"
+        @click="handleBulkUnassignParent"
+      >
+        {{ $t('categories.bulkUnassignParent') }}
+      </button>
       <button
         class="bulk-btn delete"
         :disabled="processingBulk"
@@ -28,6 +67,24 @@
       >
         {{ $t('common.delete') }}
       </button>
+    </div>
+
+    <!-- Bulk Messages -->
+    <div
+      v-if="bulkMessage"
+      class="bulk-message success"
+      data-testid="bulk-success-message"
+      role="alert"
+    >
+      {{ bulkMessage }}
+    </div>
+    <div
+      v-if="bulkError"
+      class="bulk-message error"
+      data-testid="bulk-error-message"
+      role="alert"
+    >
+      {{ bulkError }}
     </div>
 
     <div
@@ -145,8 +202,11 @@ const categoryStore = useCategoryAdminStore();
 const selectedCategories = ref(new Set<string>());
 const processingBulk = ref(false);
 const loaded = ref(false);
+const assignParentId = ref('');
+const bulkMessage = ref('');
+const bulkError = ref('');
 
-const categories = computed(() => categoryStore.categories);
+const categories = computed(() => categoryStore.categories || []);
 const loading = computed(() => categoryStore.loading);
 const error = computed(() => categoryStore.error);
 
@@ -155,6 +215,12 @@ const allSelected = computed(() => {
   if (selectable.length === 0) return false;
   return selectable.every(c => selectedCategories.value.has(c.id));
 });
+
+// Candidate parents: any category not itself in the current selection
+// (a category cannot be its own parent).
+const parentOptions = computed(() =>
+  categories.value.filter(c => !selectedCategories.value.has(c.id))
+);
 
 watch(() => props.active, (isActive) => {
   if (isActive && !loaded.value) {
@@ -199,6 +265,71 @@ function toggleSelectAll(): void {
     selectable.forEach(c => selectedCategories.value.delete(c.id));
   } else {
     selectable.forEach(c => selectedCategories.value.add(c.id));
+  }
+}
+
+async function handleBulkAssignParent(): Promise<void> {
+  if (selectedCategories.value.size === 0 || !assignParentId.value) return;
+
+  const parent = categories.value.find(c => c.id === assignParentId.value);
+  const parentName = parent?.name ?? '';
+  if (!confirm(`Assign ${selectedCategories.value.size} category(ies) under "${parentName}"?`)) return;
+
+  processingBulk.value = true;
+  bulkMessage.value = '';
+  bulkError.value = '';
+  try {
+    // Guard against self-parenting even if the option slipped through.
+    const ids = Array.from(selectedCategories.value).filter(id => id !== assignParentId.value);
+    let successCount = 0;
+    let errorCount = 0;
+    for (const id of ids) {
+      try {
+        await categoryStore.updateCategory(id, { parent_id: assignParentId.value });
+        successCount++;
+      } catch {
+        errorCount++;
+      }
+    }
+    selectedCategories.value.clear();
+    assignParentId.value = '';
+    bulkMessage.value = `${successCount} category(ies) reparented${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+    await fetchCategories();
+    setTimeout(() => { bulkMessage.value = ''; }, 3000);
+  } catch (err) {
+    bulkError.value = (err as Error).message || 'Failed to assign parent';
+  } finally {
+    processingBulk.value = false;
+  }
+}
+
+async function handleBulkUnassignParent(): Promise<void> {
+  if (selectedCategories.value.size === 0) return;
+  if (!confirm(`Remove the parent from ${selectedCategories.value.size} category(ies)?`)) return;
+
+  processingBulk.value = true;
+  bulkMessage.value = '';
+  bulkError.value = '';
+  try {
+    const ids = Array.from(selectedCategories.value);
+    let successCount = 0;
+    let errorCount = 0;
+    for (const id of ids) {
+      try {
+        await categoryStore.updateCategory(id, { parent_id: null });
+        successCount++;
+      } catch {
+        errorCount++;
+      }
+    }
+    selectedCategories.value.clear();
+    bulkMessage.value = `${successCount} category(ies) unassigned${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+    await fetchCategories();
+    setTimeout(() => { bulkMessage.value = ''; }, 3000);
+  } catch (err) {
+    bulkError.value = (err as Error).message || 'Failed to unassign parent';
+  } finally {
+    processingBulk.value = false;
   }
 }
 
@@ -387,6 +518,66 @@ async function handleBulkDelete(): Promise<void> {
 
 .bulk-btn.delete:hover:not(:disabled) {
   background: #f5c6cb;
+}
+
+.bulk-assign-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.bulk-assign-select {
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  max-width: 180px;
+}
+
+.bulk-assign-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bulk-btn.assign {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.bulk-btn.assign:hover:not(:disabled) {
+  background: #bbdefb;
+}
+
+.bulk-btn.unassign {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.bulk-btn.unassign:hover:not(:disabled) {
+  background: #ffeaa7;
+}
+
+.bulk-message {
+  padding: 15px 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  border-left: 5px solid;
+}
+
+.bulk-message.success {
+  background: #d4edda;
+  color: #155724;
+  border-color: #28a745;
+}
+
+.bulk-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-color: #dc3545;
 }
 
 code {

@@ -58,6 +58,43 @@
           class="search-input"
           @input="handleSearch"
         >
+        <select
+          v-model="filterCategory"
+          data-testid="filter-category"
+          class="filter-select"
+          :aria-label="$t('plans.categories')"
+        >
+          <option value="">
+            {{ $t('plans.allCategories') }}
+          </option>
+          <option value="__none__">
+            {{ $t('plans.uncategorized') }}
+          </option>
+          <option
+            v-for="cat in categories"
+            :key="cat.id"
+            :value="cat.id"
+          >
+            {{ cat.name }}
+          </option>
+        </select>
+        <select
+          v-model="filterBillingPeriod"
+          data-testid="filter-billing-period"
+          class="filter-select"
+          :aria-label="$t('plans.billingPeriod')"
+        >
+          <option value="">
+            {{ $t('plans.allBillingPeriods') }}
+          </option>
+          <option
+            v-for="period in billingPeriodOptions"
+            :key="period"
+            :value="period"
+          >
+            {{ billingLabel(period) }}
+          </option>
+        </select>
         <label class="checkbox-label">
           <input
             v-model="includeArchived"
@@ -76,6 +113,37 @@
         data-testid="bulk-actions"
       >
         <span class="selection-info">{{ $t('common.selected', { count: selectedPlans.size }) }}</span>
+        <div
+          class="bulk-assign-group"
+          data-testid="bulk-assign-category"
+        >
+          <select
+            v-model="assignCategoryId"
+            class="bulk-assign-select"
+            data-testid="bulk-assign-category-select"
+            :disabled="processingBulk || categories.length === 0"
+            :aria-label="$t('plans.bulkAssignCategory')"
+          >
+            <option value="">
+              {{ $t('plans.selectCategoryToAssign') }}
+            </option>
+            <option
+              v-for="cat in categories"
+              :key="cat.id"
+              :value="cat.id"
+            >
+              {{ cat.name }}
+            </option>
+          </select>
+          <button
+            class="bulk-btn assign"
+            :disabled="processingBulk || !assignCategoryId"
+            data-testid="bulk-assign-category-btn"
+            @click="handleBulkAssignCategory"
+          >
+            {{ $t('plans.bulkAssignCategory') }}
+          </button>
+        </div>
         <button
           class="bulk-btn activate"
           :disabled="processingBulk"
@@ -220,7 +288,15 @@
                 {{ $t('plans.subscribers') }}
                 <span class="sort-indicator">{{ getSortIndicator('subscriber_count') }}</span>
               </th>
-              <th>{{ $t('plans.categories') }}</th>
+              <th
+                class="sortable"
+                :class="{ sorted: sortColumn === 'categories', 'sort-asc': sortColumn === 'categories' && sortDirection === 'asc', 'sort-desc': sortColumn === 'categories' && sortDirection === 'desc' }"
+                data-sortable="categories"
+                @click="handleSort('categories')"
+              >
+                {{ $t('plans.categories') }}
+                <span class="sort-indicator">{{ getSortIndicator('categories') }}</span>
+              </th>
               <th
                 class="sortable"
                 :class="{ sorted: sortColumn === 'status', 'sort-asc': sortColumn === 'status' && sortDirection === 'asc', 'sort-desc': sortColumn === 'status' && sortDirection === 'desc' }"
@@ -306,27 +382,34 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { formatMoney, getOperatingCurrency } from 'vbwd-view-component';
 import { useAuthStore } from '@/stores/auth';
 import { usePlanAdminStore } from '../stores/planAdmin';
+import { useCategoryAdminStore } from '../stores/categoryAdmin';
 import CategoriesTab from '../components/CategoriesTab.vue';
 
 const router = useRouter();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const planStore = usePlanAdminStore();
+const categoryStore = useCategoryAdminStore();
 
 const canManage = computed(() => authStore.hasPermission('subscription.plans.manage'));
 
 const activeTab = ref<'plans' | 'categories'>('plans');
 const includeArchived = ref(false);
 const searchQuery = ref('');
+const filterCategory = ref('');
+const filterBillingPeriod = ref('');
+const assignCategoryId = ref('');
 const selectedPlans = ref(new Set<string>());
 const processingBulk = ref(false);
 const bulkSuccessMessage = ref('');
 const bulkErrorMessage = ref('');
 
 // Sorting state
-type SortColumn = 'name' | 'price' | 'billing_period' | 'subscriber_count' | 'status' | null;
+type SortColumn = 'name' | 'price' | 'billing_period' | 'subscriber_count' | 'categories' | 'status' | null;
 type SortDirection = 'asc' | 'desc';
 
 const sortColumn = ref<SortColumn>(null);
@@ -335,6 +418,36 @@ const sortDirection = ref<SortDirection>('asc');
 const plans = computed(() => planStore.plans);
 const loading = computed(() => planStore.loading);
 const error = computed(() => planStore.error);
+const categories = computed(() => categoryStore.categories || []);
+
+// Distinct billing periods present in the loaded plans, for the filter dropdown.
+const billingPeriodOptions = computed(() => {
+  const seen = new Set<string>();
+  for (const plan of plans.value) {
+    if (plan.billing_period) seen.add(plan.billing_period);
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b));
+});
+
+const BILLING_LABEL_KEYS: Record<string, string> = {
+  MONTHLY: 'plans.monthly',
+  YEARLY: 'plans.yearly',
+  QUARTERLY: 'plans.quarterly',
+  WEEKLY: 'plans.weekly',
+  ONE_TIME: 'plans.oneTime'
+};
+
+function billingLabel(period: string): string {
+  const key = BILLING_LABEL_KEYS[String(period).toUpperCase()];
+  return key ? t(key) : period;
+}
+
+function categorySortKey(plan: { categories?: { slug: string }[] }): string {
+  return (plan.categories || [])
+    .map(cat => cat.slug)
+    .sort((a, b) => a.localeCompare(b))
+    .join(',');
+}
 
 const allVisibleSelected = computed(() => {
   if (sortedPlans.value.length === 0) return false;
@@ -343,13 +456,31 @@ const allVisibleSelected = computed(() => {
 
 // Filtered and sorted plans computed property
 const sortedPlans = computed(() => {
-  // First filter by search query
   let filtered = plans.value;
+
+  // Quicksearch: match plan name or any assigned category slug.
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase();
-    filtered = plans.value.filter(plan =>
-      plan.name?.toLowerCase().includes(query)
+    filtered = filtered.filter(plan =>
+      plan.name?.toLowerCase().includes(query) ||
+      (plan.categories || []).some(cat =>
+        cat.slug?.toLowerCase().includes(query) || cat.name?.toLowerCase().includes(query)
+      )
     );
+  }
+
+  // Filter by category ("__none__" = uncategorized).
+  if (filterCategory.value) {
+    filtered = filtered.filter(plan => {
+      const cats = plan.categories || [];
+      if (filterCategory.value === '__none__') return cats.length === 0;
+      return cats.some(cat => cat.id === filterCategory.value);
+    });
+  }
+
+  // Filter by billing period.
+  if (filterBillingPeriod.value) {
+    filtered = filtered.filter(plan => plan.billing_period === filterBillingPeriod.value);
   }
 
   if (!sortColumn.value) return filtered;
@@ -374,6 +505,10 @@ const sortedPlans = computed(() => {
       case 'subscriber_count':
         aVal = a.subscriber_count ?? 0;
         bVal = b.subscriber_count ?? 0;
+        break;
+      case 'categories':
+        aVal = categorySortKey(a);
+        bVal = categorySortKey(b);
         break;
       case 'status':
         aVal = a.is_active;
@@ -627,8 +762,49 @@ async function handleBulkDelete(): Promise<void> {
   }
 }
 
+async function handleBulkAssignCategory(): Promise<void> {
+  if (selectedPlans.value.size === 0 || !assignCategoryId.value) return;
+
+  const category = categories.value.find(cat => cat.id === assignCategoryId.value);
+  const categoryName = category?.name ?? '';
+
+  if (!confirm(`Assign ${selectedPlans.value.size} plan(s) to "${categoryName}"?`)) {
+    return;
+  }
+
+  processingBulk.value = true;
+  bulkErrorMessage.value = '';
+  bulkSuccessMessage.value = '';
+
+  try {
+    const planIds = Array.from(selectedPlans.value);
+    await categoryStore.attachPlans(assignCategoryId.value, planIds);
+
+    selectedPlans.value.clear();
+    assignCategoryId.value = '';
+    bulkSuccessMessage.value = `${planIds.length} plan(s) assigned to "${categoryName}"`;
+    await fetchPlans();
+    setTimeout(() => {
+      bulkSuccessMessage.value = '';
+    }, 3000);
+  } catch (err) {
+    bulkErrorMessage.value = (err as Error).message || 'Failed to assign category';
+  } finally {
+    processingBulk.value = false;
+  }
+}
+
+async function fetchCategories(): Promise<void> {
+  try {
+    await categoryStore.fetchCategories('flat');
+  } catch {
+    // Categories are optional for the plans view; ignore fetch errors here.
+  }
+}
+
 onMounted(() => {
   fetchPlans();
+  fetchCategories();
 });
 </script>
 
@@ -720,6 +896,52 @@ onMounted(() => {
 .search-input:focus {
   outline: none;
   border-color: #3498db;
+}
+
+.filter-select {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.bulk-assign-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.bulk-assign-select {
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  max-width: 180px;
+}
+
+.bulk-assign-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bulk-btn.assign {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.bulk-btn.assign:hover:not(:disabled) {
+  background: #bbdefb;
 }
 
 .checkbox-label {

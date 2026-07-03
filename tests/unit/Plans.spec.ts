@@ -349,4 +349,107 @@ describe('Plans.vue', () => {
       expect(wrapper.find('[data-testid="copy-button"]').exists()).toBe(false);
     });
   });
+
+  describe('filters, sortable categories, bulk assign category', () => {
+    const mockCategories = [
+      { id: 'cat-basic', name: 'Basic', slug: 'basic', is_single: true },
+      { id: 'cat-premium', name: 'Premium', slug: 'premium', is_single: false }
+    ];
+
+    const mixedPlans = [
+      { id: '1', name: 'Free', price_float: 0, billing_period: 'MONTHLY', is_active: true, subscriber_count: 5, categories: [{ id: 'cat-basic', name: 'Basic', slug: 'basic' }] },
+      { id: '2', name: 'Pro', price_float: 29, billing_period: 'YEARLY', is_active: true, subscriber_count: 3, categories: [{ id: 'cat-premium', name: 'Premium', slug: 'premium' }] },
+      { id: '3', name: 'Team', price_float: 99, billing_period: 'MONTHLY', is_active: true, subscriber_count: 1, categories: [] }
+    ];
+
+    beforeEach(() => {
+      // Route category vs plan GETs to the right payload.
+      vi.mocked(api.get).mockImplementation((url: string) => {
+        if (String(url).includes('tarif-plan-categories')) {
+          return Promise.resolve({ categories: mockCategories });
+        }
+        return Promise.resolve({ plans: mixedPlans });
+      });
+    });
+
+    it('renders category and billing-period filter selects plus a sortable categories column', async () => {
+      const wrapper = mount(Plans, { global: { plugins: [router] } });
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="filter-category"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="filter-billing-period"]').exists()).toBe(true);
+      // Categories column header is now clickable/sortable.
+      expect(wrapper.find('th[data-sortable="categories"]').exists()).toBe(true);
+    });
+
+    it('populates the category filter from fetched categories', async () => {
+      const wrapper = mount(Plans, { global: { plugins: [router] } });
+      await flushPromises();
+
+      const options = wrapper.findAll('[data-testid="filter-category"] option').map(o => o.text());
+      expect(options).toContain('Basic');
+      expect(options).toContain('Premium');
+    });
+
+    it('filters plans by billing period', async () => {
+      const wrapper = mount(Plans, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="filter-billing-period"]').setValue('YEARLY');
+      await flushPromises();
+
+      const rows = wrapper.findAll('.plan-row');
+      expect(rows.length).toBe(1);
+      expect(wrapper.text()).toContain('Pro');
+      expect(wrapper.text()).not.toContain('Free');
+    });
+
+    it('filters plans by category', async () => {
+      const wrapper = mount(Plans, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="filter-category"]').setValue('cat-premium');
+      await flushPromises();
+
+      const rows = wrapper.findAll('.plan-row');
+      expect(rows.length).toBe(1);
+      expect(wrapper.text()).toContain('Pro');
+    });
+
+    it('filters to uncategorized plans', async () => {
+      const wrapper = mount(Plans, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="filter-category"]').setValue('__none__');
+      await flushPromises();
+
+      const rows = wrapper.findAll('.plan-row');
+      expect(rows.length).toBe(1);
+      expect(wrapper.text()).toContain('Team');
+    });
+
+    it('bulk-assigns selected plans to a category via attach-plans', async () => {
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      vi.mocked(api.post).mockResolvedValue({ category: { id: 'cat-premium', plan_count: 2 } });
+
+      const wrapper = mount(Plans, { global: { plugins: [router] } });
+      await flushPromises();
+
+      await wrapper.find('[data-testid="select-plan-1"]').setValue(true);
+      await wrapper.find('[data-testid="select-plan-3"]').setValue(true);
+      await flushPromises();
+
+      await wrapper.find('[data-testid="bulk-assign-category-select"]').setValue('cat-premium');
+      await wrapper.find('[data-testid="bulk-assign-category-btn"]').trigger('click');
+      await flushPromises();
+
+      expect(api.post).toHaveBeenCalledWith(
+        '/admin/tarif-plan-categories/cat-premium/attach-plans',
+        { plan_ids: ['1', '3'] }
+      );
+      expect(wrapper.find('[data-testid="bulk-success-message"]').exists()).toBe(true);
+
+      confirmSpy.mockRestore();
+    });
+  });
 });
