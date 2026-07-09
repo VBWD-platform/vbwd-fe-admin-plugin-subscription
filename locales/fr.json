@@ -20,6 +20,7 @@
     }
   },
   "subscription": {
+    "makeACopy": "Faire une copie",
     "topbar": {
       "newSubs": "{count} nouveaux abonnements"
     },

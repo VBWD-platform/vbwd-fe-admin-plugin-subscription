@@ -269,7 +269,7 @@ describe('Plans.vue', () => {
   });
 
   describe('bulk copy', () => {
-    it('does not show the bulk copy button when no plans are selected', async () => {
+    it('does not show the make-a-copy button when no plans are selected', async () => {
       const wrapper = mount(Plans, {
         global: {
           plugins: [router]
@@ -278,10 +278,10 @@ describe('Plans.vue', () => {
 
       await flushPromises();
 
-      expect(wrapper.find('[data-testid="bulk-copy-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="bulk-copy"]').exists()).toBe(false);
     });
 
-    it('shows the bulk copy button when at least one plan is selected', async () => {
+    it('shows the make-a-copy button when at least one plan is selected', async () => {
       const wrapper = mount(Plans, {
         global: {
           plugins: [router]
@@ -293,12 +293,12 @@ describe('Plans.vue', () => {
       await wrapper.find('[data-testid="select-plan-1"]').setValue(true);
       await flushPromises();
 
-      expect(wrapper.find('[data-testid="bulk-copy-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="bulk-copy"]').exists()).toBe(true);
     });
 
-    it('copies each selected plan once, then refreshes and shows a success message', async () => {
+    it('copies all selected plans in a single bulk request, then refreshes and clears selection', async () => {
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-      vi.mocked(api.post).mockResolvedValue({ plan: { id: 'copy-1' } });
+      vi.mocked(api.post).mockResolvedValue({ plans: [{ id: 'copy-1' }, { id: 'copy-2' }], count: 2 });
 
       const wrapper = mount(Plans, {
         global: {
@@ -314,18 +314,21 @@ describe('Plans.vue', () => {
 
       vi.mocked(api.get).mockClear();
 
-      await wrapper.find('[data-testid="bulk-copy-btn"]').trigger('click');
+      await wrapper.find('[data-testid="bulk-copy"]').trigger('click');
       await flushPromises();
 
-      // copyPlan -> POST /admin/tarif-plans/<id>/copy once per selected id
-      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans/1/copy');
-      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans/2/copy');
-      expect(vi.mocked(api.post).mock.calls.filter(call => String(call[0]).endsWith('/copy')).length).toBe(2);
+      // Single bulk request for the two selected ids — NOT one POST per id.
+      const copyCalls = vi.mocked(api.post).mock.calls.filter(call => String(call[0]).includes('copy'));
+      expect(copyCalls.length).toBe(1);
+      expect(api.post).toHaveBeenCalledWith('/admin/tarif-plans/bulk/copy', { ids: ['1', '2'] });
 
       // list refreshed
       expect(api.get).toHaveBeenCalledWith('/admin/tarif-plans', {
         params: { include_archived: false }
       });
+
+      // selection cleared
+      expect(wrapper.find('[data-testid="bulk-actions"]').exists()).toBe(false);
 
       // success message shown
       expect(wrapper.find('[data-testid="bulk-success-message"]').exists()).toBe(true);

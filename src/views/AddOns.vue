@@ -58,6 +58,14 @@
         {{ $t('addOns.bulkDeactivate') }}
       </button>
       <button
+        class="bulk-btn copy"
+        :disabled="processingBulk"
+        data-testid="bulk-copy"
+        @click="handleBulkCopy"
+      >
+        {{ $t('subscription.makeACopy', 'Make a copy') }}
+      </button>
+      <button
         class="bulk-btn delete"
         :disabled="processingBulk"
         data-testid="bulk-delete-btn"
@@ -482,6 +490,31 @@ async function handleBulkDeactivate(): Promise<void> {
   }
 }
 
+async function handleBulkCopy(): Promise<void> {
+  if (selectedAddons.value.size === 0) return;
+
+  processingBulk.value = true;
+  bulkErrorMessage.value = '';
+  bulkSuccessMessage.value = '';
+
+  try {
+    const addonIds = Array.from(selectedAddons.value);
+    const result = await addonStore.bulkCopyAddons(addonIds);
+    const copiedCount = result?.count ?? addonIds.length;
+
+    selectedAddons.value.clear();
+    bulkSuccessMessage.value = `${copiedCount} add-on(s) copied`;
+    await fetchAddons();
+    setTimeout(() => {
+      bulkSuccessMessage.value = '';
+    }, 3000);
+  } catch (err) {
+    bulkErrorMessage.value = (err as Error).message || 'Failed to copy add-ons';
+  } finally {
+    processingBulk.value = false;
+  }
+}
+
 async function handleBulkDelete(): Promise<void> {
   if (selectedAddons.value.size === 0) return;
 
@@ -798,6 +831,15 @@ onMounted(() => {
 
 .bulk-btn.deactivate:hover:not(:disabled) {
   background: #ffeaa7;
+}
+
+.bulk-btn.copy {
+  background: var(--vbwd-color-info-bg, #d1ecf1);
+  color: var(--vbwd-color-info-text, #0c5460);
+}
+
+.bulk-btn.copy:hover:not(:disabled) {
+  background: var(--vbwd-color-info-bg-hover, #bee5eb);
 }
 
 .bulk-btn.delete {

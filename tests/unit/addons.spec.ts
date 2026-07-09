@@ -271,6 +271,53 @@ describe('AddOns View', () => {
     expect(planCells[1].find('.all-plans').exists()).toBe(false);
   });
 
+  describe('bulk copy', () => {
+    it('does not show the make-a-copy button when no add-ons are selected', async () => {
+      const wrapper = mountWithData();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="bulk-copy"]').exists()).toBe(false);
+    });
+
+    it('shows the make-a-copy button when at least one add-on is selected', async () => {
+      const wrapper = mountWithData();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="select-addon-1"]').setValue(true);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="bulk-copy"]').exists()).toBe(true);
+    });
+
+    it('copies all selected add-ons in a single bulk request, then refreshes and clears selection', async () => {
+      const wrapper = mountWithData();
+      await flushPromises();
+
+      vi.mocked(api.post).mockResolvedValue({ addons: [{ id: 'copy-1' }, { id: 'copy-2' }], count: 2 });
+
+      await wrapper.find('[data-testid="select-addon-1"]').setValue(true);
+      await wrapper.find('[data-testid="select-addon-2"]').setValue(true);
+      await flushPromises();
+
+      vi.mocked(api.get).mockClear();
+
+      await wrapper.find('[data-testid="bulk-copy"]').trigger('click');
+      await flushPromises();
+
+      const copyCalls = vi.mocked(api.post).mock.calls.filter(call => String(call[0]).includes('copy'));
+      expect(copyCalls.length).toBe(1);
+      expect(api.post).toHaveBeenCalledWith('/admin/addons/bulk/copy', { ids: ['1', '2'] });
+
+      // list refreshed
+      expect(api.get).toHaveBeenCalledWith('/admin/addons/', {
+        params: { page: 1, per_page: 20, include_inactive: true }
+      });
+
+      // selection cleared
+      expect(wrapper.find('[data-testid="bulk-actions"]').exists()).toBe(false);
+    });
+  });
+
   it('shows multiple plan badges when addon has multiple plans', async () => {
     const multiPlanAddons = [{
       id: '3',

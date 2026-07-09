@@ -159,6 +159,21 @@ export const usePlanAdminStore = defineStore('planAdmin', {
       }
     },
 
+    async bulkCopyPlans(ids: string[]): Promise<{ plans: AdminPlan[]; count: number }> {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await api.post('/admin/tarif-plans/bulk/copy', { ids });
+        return response as { plans: AdminPlan[]; count: number };
+      } catch (error) {
+        this.error = (error as Error).message || 'Failed to copy plans';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async getSubscriberCount(planId: string): Promise<number> {
       try {
         const response = await api.get(`/admin/tarif-plans/${planId}/subscribers/count`) as { count: number };

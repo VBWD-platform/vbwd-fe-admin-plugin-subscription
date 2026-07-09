@@ -163,10 +163,10 @@
         <button
           class="bulk-btn copy"
           :disabled="processingBulk"
-          data-testid="bulk-copy-btn"
+          data-testid="bulk-copy"
           @click="handleBulkCopy"
         >
-          {{ $t('plans.bulkCopy') }}
+          {{ $t('subscription.makeACopy', 'Make a copy') }}
         </button>
         <button
           class="bulk-btn delete"
@@ -648,20 +648,11 @@ async function handleBulkCopy(): Promise<void> {
 
   try {
     const planIds = Array.from(selectedPlans.value);
-    let successCount = 0;
-    let errorCount = 0;
-
-    for (const planId of planIds) {
-      try {
-        await planStore.copyPlan(planId);
-        successCount++;
-      } catch {
-        errorCount++;
-      }
-    }
+    const result = await planStore.bulkCopyPlans(planIds);
+    const copiedCount = result?.count ?? planIds.length;
 
     selectedPlans.value.clear();
-    bulkSuccessMessage.value = `${successCount} plan(s) copied${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+    bulkSuccessMessage.value = `${copiedCount} plan(s) copied`;
     await fetchPlans();
     setTimeout(() => {
       bulkSuccessMessage.value = '';

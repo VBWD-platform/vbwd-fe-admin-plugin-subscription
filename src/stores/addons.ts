@@ -116,6 +116,20 @@ export const useAddonStore = defineStore('addons', {
       }
     },
 
+    async bulkCopyAddons(ids: string[]): Promise<{ addons: AdminAddon[]; count: number }> {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.post('/admin/addons/bulk/copy', { ids });
+        return response as { addons: AdminAddon[]; count: number };
+      } catch (error) {
+        this.error = (error as Error).message || 'Failed to copy add-ons';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async activateAddon(addonId: string) {
       this.loading = true;
       this.error = null;
