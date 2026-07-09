@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "サブタイトル",
+      "subtitlePlaceholder": "最適なプランをお選びください（空欄 = デフォルト）",
+      "ctaLabel": "ボタンのラベル",
+      "ctaLabelPlaceholder": "プランを選択（空欄 = デフォルト）",
+      "theme": "カードのテーマ",
+      "themeHint": "カードの配色を変更します。不明な値はデフォルトのテーマになります。",
+      "imageUrl": "カード画像のURL",
+      "imageUrlHint": "各カードの上部に表示される任意のアイコン。",
+      "highlightSlug": "プランを強調",
+      "highlightNone": "— なし —",
+      "highlightBadge": "強調バッジのテキスト",
+      "highlightBadgePlaceholder": "最も人気（空欄 = デフォルト）",
+      "features": "機能（1行に1つ）",
+      "featuresPlaceholder": "2000 MB 帯域幅\n5 GB 容量\nユーザー数無制限",
+      "featuresHint": "各カードにチェックリストとして表示されます（カード表示のみ）。"
     }
   },
   "subscription": {

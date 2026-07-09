@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "Subtitle",
+      "subtitlePlaceholder": "Choose the plan that fits you best (blank = default)",
+      "ctaLabel": "Button label",
+      "ctaLabelPlaceholder": "Select Plan (blank = default)",
+      "theme": "Card theme",
+      "themeHint": "Recolours the cards. Unknown values fall back to the default theme.",
+      "imageUrl": "Card image URL",
+      "imageUrlHint": "Optional icon shown at the top of each card.",
+      "highlightSlug": "Emphasize plan",
+      "highlightNone": "— none —",
+      "highlightBadge": "Emphasis badge text",
+      "highlightBadgePlaceholder": "Most Popular (blank = default)",
+      "features": "Features (one per line)",
+      "featuresPlaceholder": "2000 MB Bandwidth\n5 GB Space\nUnlimited Users",
+      "featuresHint": "Shown as a checkmark list on every card (cards view only)."
     }
   },
   "subscription": {

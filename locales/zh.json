@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "副标题",
+      "subtitlePlaceholder": "选择最适合您的方案（留空 = 默认）",
+      "ctaLabel": "按钮文字",
+      "ctaLabelPlaceholder": "选择方案（留空 = 默认）",
+      "theme": "卡片主题",
+      "themeHint": "重新为卡片配色。未知值将使用默认主题。",
+      "imageUrl": "卡片图片 URL",
+      "imageUrlHint": "每张卡片顶部显示的可选图标。",
+      "highlightSlug": "突出方案",
+      "highlightNone": "— 无 —",
+      "highlightBadge": "突出徽章文字",
+      "highlightBadgePlaceholder": "最受欢迎（留空 = 默认）",
+      "features": "功能（每行一项）",
+      "featuresPlaceholder": "2000 MB 带宽\n5 GB 空间\n无限用户",
+      "featuresHint": "在每张卡片上显示为勾选列表（仅卡片视图）。"
     }
   },
   "subscription": {

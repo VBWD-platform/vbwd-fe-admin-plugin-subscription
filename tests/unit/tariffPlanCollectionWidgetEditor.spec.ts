@@ -207,6 +207,116 @@ describe('TariffPlanCollection editor tab', () => {
   });
 });
 
+describe('TariffPlanCollection presentation config', () => {
+  function getDescriptor() {
+    return getWidgetEditor('TariffPlanCollection')!;
+  }
+
+  it('defaultConfig carries the NativePricingPlans-portable presentation keys', () => {
+    const config = getDescriptor().defaultConfig();
+    for (const key of [
+      'subtitle',
+      'theme',
+      'image_url',
+      'features',
+      'highlight_slug',
+      'highlight_badge',
+      'cta_label',
+    ]) {
+      expect(config).toHaveProperty(key);
+    }
+    expect(Array.isArray(config.features)).toBe(true);
+    expect(config.theme).toBe('default');
+  });
+
+  it('buildPreview marks the emphasized card, its badge and the feature checklist', () => {
+    const preview = getDescriptor().buildPreview({
+      component_name: 'TariffPlanCollection',
+      heading: 'Choose your plan',
+      highlight_slug: 'pro',
+      highlight_badge: 'Best Value',
+      features: ['2000 MB Bandwidth', '5 GB Space'],
+      image_url: 'https://cdn.example/icon.png',
+    });
+    expect(preview.html).toContain('tariff-plan-card--featured');
+    expect(preview.html).toContain('Best Value');
+    expect(preview.html).toContain('2000 MB Bandwidth');
+    expect(preview.html).toContain('https://cdn.example/icon.png');
+    expect(typeof preview.baseStyles).toBe('string');
+  });
+
+  it('renders the new presentation fields in the editor tab', async () => {
+    const descriptor = getDescriptor();
+    const wrapper = mount(descriptor.generalTabComponent as Component, {
+      props: { config: descriptor.defaultConfig() },
+      global: { mocks: { $t: (key: string) => key } },
+    });
+    await flushPromises();
+    for (const testid of [
+      'subtitle',
+      'cta-label',
+      'theme',
+      'image-url',
+      'highlight-slug',
+      'highlight-badge',
+      'features',
+    ]) {
+      expect(wrapper.find(`[data-test="${testid}"]`).exists()).toBe(true);
+    }
+  });
+
+  it('emits the chosen theme into config.theme', async () => {
+    const descriptor = getDescriptor();
+    const wrapper = mount(descriptor.generalTabComponent as Component, {
+      props: { config: descriptor.defaultConfig() },
+      global: { mocks: { $t: (key: string) => key } },
+    });
+    await wrapper.find('[data-test="theme"]').setValue('teal');
+    const emitted = wrapper.emitted('update:config');
+    expect(emitted).toBeTruthy();
+    const payload = emitted![emitted!.length - 1][0] as Record<string, unknown>;
+    expect(payload.theme).toBe('teal');
+  });
+
+  it('emits the image URL into config.image_url', async () => {
+    const descriptor = getDescriptor();
+    const wrapper = mount(descriptor.generalTabComponent as Component, {
+      props: { config: descriptor.defaultConfig() },
+      global: { mocks: { $t: (key: string) => key } },
+    });
+    await wrapper.find('[data-test="image-url"]').setValue('https://cdn.example/icon.png');
+    const emitted = wrapper.emitted('update:config');
+    expect(emitted).toBeTruthy();
+    const payload = emitted![emitted!.length - 1][0] as Record<string, unknown>;
+    expect(payload.image_url).toBe('https://cdn.example/icon.png');
+  });
+
+  it('splits the features textarea into a string[] on config.features', async () => {
+    const descriptor = getDescriptor();
+    const wrapper = mount(descriptor.generalTabComponent as Component, {
+      props: { config: descriptor.defaultConfig() },
+      global: { mocks: { $t: (key: string) => key } },
+    });
+    await wrapper.find('[data-test="features"]').setValue('2000 MB Bandwidth\n5 GB Space');
+    const emitted = wrapper.emitted('update:config');
+    expect(emitted).toBeTruthy();
+    const payload = emitted![emitted!.length - 1][0] as Record<string, unknown>;
+    expect(payload.features).toEqual(['2000 MB Bandwidth', '5 GB Space']);
+  });
+
+  it('sources the emphasize-plan dropdown from the plans API', async () => {
+    const descriptor = getDescriptor();
+    const wrapper = mount(descriptor.generalTabComponent as Component, {
+      props: { config: descriptor.defaultConfig() },
+      global: { mocks: { $t: (key: string) => key } },
+    });
+    await flushPromises();
+    const html = wrapper.find('[data-test="highlight-slug"]').html();
+    expect(html).toContain('basic');
+    expect(html).toContain('premium');
+  });
+});
+
 describe('subscription-admin install() wires the widget editor', () => {
   it('registers TariffPlanCollection through the cms-admin seam on install', async () => {
     const registry = new PluginRegistry();

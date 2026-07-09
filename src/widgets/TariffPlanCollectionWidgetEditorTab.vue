@@ -86,12 +86,124 @@
       @input="set('heading', ($event.target as HTMLInputElement).value)"
     >
   </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.subtitle') }}</label>
+    <input
+      data-test="subtitle"
+      :value="config.subtitle"
+      class="field-input"
+      type="text"
+      :placeholder="$t('subscriptionAdmin.tariffPlanWidget.subtitlePlaceholder')"
+      @input="set('subtitle', ($event.target as HTMLInputElement).value)"
+    >
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.ctaLabel') }}</label>
+    <input
+      data-test="cta-label"
+      :value="config.cta_label"
+      class="field-input"
+      type="text"
+      :placeholder="$t('subscriptionAdmin.tariffPlanWidget.ctaLabelPlaceholder')"
+      @input="set('cta_label', ($event.target as HTMLInputElement).value)"
+    >
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.theme') }}</label>
+    <select
+      data-test="theme"
+      :value="theme"
+      class="field-input"
+      @change="set('theme', ($event.target as HTMLSelectElement).value)"
+    >
+      <option
+        v-for="themeOption in THEME_OPTIONS"
+        :key="themeOption"
+        :value="themeOption"
+      >
+        {{ themeOption }}
+      </option>
+    </select>
+    <p class="field-hint">
+      {{ $t('subscriptionAdmin.tariffPlanWidget.themeHint') }}
+    </p>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.imageUrl') }}</label>
+    <input
+      data-test="image-url"
+      :value="config.image_url"
+      class="field-input field-input--mono"
+      type="text"
+      placeholder="https://…"
+      @input="set('image_url', ($event.target as HTMLInputElement).value)"
+    >
+    <p class="field-hint">
+      {{ $t('subscriptionAdmin.tariffPlanWidget.imageUrlHint') }}
+    </p>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.highlightSlug') }}</label>
+    <select
+      data-test="highlight-slug"
+      :value="config.highlight_slug || ''"
+      class="field-input"
+      @change="set('highlight_slug', ($event.target as HTMLSelectElement).value)"
+    >
+      <option value="">
+        {{ $t('subscriptionAdmin.tariffPlanWidget.highlightNone') }}
+      </option>
+      <option
+        v-for="plan in availablePlans"
+        :key="plan.slug"
+        :value="plan.slug"
+      >
+        {{ plan.name }} ({{ plan.slug }})
+      </option>
+    </select>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.highlightBadge') }}</label>
+    <input
+      data-test="highlight-badge"
+      :value="config.highlight_badge"
+      class="field-input"
+      type="text"
+      :placeholder="$t('subscriptionAdmin.tariffPlanWidget.highlightBadgePlaceholder')"
+      @input="set('highlight_badge', ($event.target as HTMLInputElement).value)"
+    >
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">{{ $t('subscriptionAdmin.tariffPlanWidget.features') }}</label>
+    <textarea
+      data-test="features"
+      :value="featuresText"
+      class="field-input field-input--mono"
+      rows="5"
+      :placeholder="$t('subscriptionAdmin.tariffPlanWidget.featuresPlaceholder')"
+      @input="onFeaturesInput(($event.target as HTMLTextAreaElement).value)"
+    />
+    <p class="field-hint">
+      {{ $t('subscriptionAdmin.tariffPlanWidget.featuresHint') }}
+    </p>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import DualListSelector, { type DualListOption } from '@/components/DualListSelector.vue';
-import { SOURCE_MODE_OPTIONS, DEFAULT_VIEW_OPTIONS } from './tariffPlanCollectionWidgetOptions';
+import {
+  SOURCE_MODE_OPTIONS,
+  DEFAULT_VIEW_OPTIONS,
+  THEME_OPTIONS,
+} from './tariffPlanCollectionWidgetOptions';
 
 interface TariffPlanCategory {
   slug: string;
@@ -108,8 +220,12 @@ const emit = defineEmits<{ (e: 'update:config', val: Record<string, unknown>): v
 
 const config = computed(() => props.config);
 const sourceMode = computed<string>(() => (config.value.source_mode as string) || 'category');
+const theme = computed<string>(() => (config.value.theme as string) || 'default');
 const selectedPlanSlugs = computed<string[]>(() =>
   Array.isArray(config.value.plan_slugs) ? (config.value.plan_slugs as string[]) : [],
+);
+const featuresText = computed<string>(() =>
+  Array.isArray(config.value.features) ? (config.value.features as string[]).join('\n') : '',
 );
 
 const availableCategories = ref<TariffPlanCategory[]>([]);
@@ -147,12 +263,18 @@ function setPlanSlugs(slugs: string[]): void {
   set('plan_slugs', slugs);
 }
 
+function onFeaturesInput(value: string): void {
+  // Keep raw lines so the controlled textarea round-trips while typing; the
+  // fe-user widget trims and drops blanks at render time.
+  set('features', value.split('\n'));
+}
+
 onMounted(() => {
-  if (sourceMode.value === 'category') {
-    loadCategories();
-  } else {
-    loadPlans();
-  }
+  // The category select needs the category list; the plan dual-list AND the
+  // emphasize-plan dropdown both need the plan list — so load plans regardless
+  // of the source mode.
+  loadCategories();
+  loadPlans();
 });
 
 watch(sourceMode, (mode) => {

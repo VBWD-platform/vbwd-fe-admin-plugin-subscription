@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "Sous-titre",
+      "subtitlePlaceholder": "Choisissez le forfait qui vous convient (vide = défaut)",
+      "ctaLabel": "Libellé du bouton",
+      "ctaLabelPlaceholder": "Choisir le plan (vide = défaut)",
+      "theme": "Thème de la carte",
+      "themeHint": "Recolore les cartes. Les valeurs inconnues utilisent le thème par défaut.",
+      "imageUrl": "URL de l'image de la carte",
+      "imageUrlHint": "Icône facultative en haut de chaque carte.",
+      "highlightSlug": "Mettre un forfait en avant",
+      "highlightNone": "— aucun —",
+      "highlightBadge": "Texte du badge",
+      "highlightBadgePlaceholder": "Populaire (vide = défaut)",
+      "features": "Fonctionnalités (une par ligne)",
+      "featuresPlaceholder": "2000 Mo de bande passante\n5 Go d'espace\nUtilisateurs illimités",
+      "featuresHint": "Affiché comme liste à cocher sur chaque carte (vue cartes uniquement)."
     }
   },
   "subscription": {

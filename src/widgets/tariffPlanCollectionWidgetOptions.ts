@@ -10,6 +10,10 @@
 export const SOURCE_MODE_OPTIONS = ['category', 'slugs'] as const;
 export const DEFAULT_VIEW_OPTIONS = ['cards', 'table'] as const;
 
+// The six shared theme names (Landing1View / NativePricingPlans parity). An
+// unknown value falls back to 'default' in the fe-user component.
+export const THEME_OPTIONS = ['default', 'light', 'dark', 'teal', 'indigo', 'emerald'] as const;
+
 export function tariffPlanCollectionDefaultConfig(): Record<string, unknown> {
   return {
     component_name: 'TariffPlanCollection',
@@ -18,5 +22,14 @@ export function tariffPlanCollectionDefaultConfig(): Record<string, unknown> {
     plan_slugs: [],
     default_view: 'cards',
     heading: '',
+    // Presentation controls — key names match NativePricingPlans EXACTLY so an
+    // operator's config is portable between the two widgets.
+    subtitle: '',
+    theme: 'default',
+    image_url: '',
+    features: [],
+    highlight_slug: '',
+    highlight_badge: '',
+    cta_label: '',
   };
 }

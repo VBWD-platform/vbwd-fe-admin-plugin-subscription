@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "Подзаголовок",
+      "subtitlePlaceholder": "Выберите подходящий тариф (пусто = по умолчанию)",
+      "ctaLabel": "Текст кнопки",
+      "ctaLabelPlaceholder": "Выбрать план (пусто = по умолчанию)",
+      "theme": "Тема карточки",
+      "themeHint": "Перекрашивает карточки. Неизвестные значения используют тему по умолчанию.",
+      "imageUrl": "URL изображения карточки",
+      "imageUrlHint": "Необязательный значок вверху каждой карточки.",
+      "highlightSlug": "Выделить тариф",
+      "highlightNone": "— нет —",
+      "highlightBadge": "Текст значка",
+      "highlightBadgePlaceholder": "Самый популярный (пусто = по умолчанию)",
+      "features": "Функции (по одной на строку)",
+      "featuresPlaceholder": "2000 МБ трафика\n5 ГБ места\nНеограниченно пользователей",
+      "featuresHint": "Отображается в виде списка с галочками на каждой карточке (только вид карточек)."
     }
   },
   "subscription": {

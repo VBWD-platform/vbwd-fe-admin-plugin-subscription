@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "คำบรรยาย",
+      "subtitlePlaceholder": "เลือกแผนที่เหมาะกับคุณ (ว่าง = ค่าเริ่มต้น)",
+      "ctaLabel": "ข้อความปุ่ม",
+      "ctaLabelPlaceholder": "เลือกแผน (ว่าง = ค่าเริ่มต้น)",
+      "theme": "ธีมการ์ด",
+      "themeHint": "เปลี่ยนสีการ์ด ค่าที่ไม่รู้จักจะใช้ธีมเริ่มต้น",
+      "imageUrl": "URL รูปภาพการ์ด",
+      "imageUrlHint": "ไอคอนเสริมที่ด้านบนของแต่ละการ์ด",
+      "highlightSlug": "เน้นแผน",
+      "highlightNone": "— ไม่มี —",
+      "highlightBadge": "ข้อความป้ายเน้น",
+      "highlightBadgePlaceholder": "ได้รับความนิยมมากที่สุด (ว่าง = ค่าเริ่มต้น)",
+      "features": "คุณสมบัติ (บรรทัดละหนึ่งรายการ)",
+      "featuresPlaceholder": "แบนด์วิดท์ 2000 MB\nพื้นที่ 5 GB\nผู้ใช้ไม่จำกัด",
+      "featuresHint": "แสดงเป็นรายการเครื่องหมายถูกในทุกการ์ด (มุมมองการ์ดเท่านั้น)"
     }
   },
   "subscription": {

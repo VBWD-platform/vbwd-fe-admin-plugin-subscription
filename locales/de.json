@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "Untertitel",
+      "subtitlePlaceholder": "Wählen Sie den passenden Tarif (leer = Standard)",
+      "ctaLabel": "Schaltflächentext",
+      "ctaLabelPlaceholder": "Plan auswählen (leer = Standard)",
+      "theme": "Kartendesign",
+      "themeHint": "Färbt die Karten neu. Unbekannte Werte nutzen das Standarddesign.",
+      "imageUrl": "Karten-Bild-URL",
+      "imageUrlHint": "Optionales Symbol oben auf jeder Karte.",
+      "highlightSlug": "Tarif hervorheben",
+      "highlightNone": "— kein —",
+      "highlightBadge": "Hervorhebungs-Badge-Text",
+      "highlightBadgePlaceholder": "Beliebtester Tarif (leer = Standard)",
+      "features": "Funktionen (eine pro Zeile)",
+      "featuresPlaceholder": "2000 MB Bandbreite\n5 GB Speicher\nUnbegrenzte Nutzer",
+      "featuresHint": "Als Häkchenliste auf jeder Karte angezeigt (nur Kartenansicht)."
     }
   },
   "subscription": {

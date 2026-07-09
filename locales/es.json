@@ -16,7 +16,22 @@
         "table": "Table"
       },
       "heading": "Heading",
-      "headingPlaceholder": "Choose your plan"
+      "headingPlaceholder": "Choose your plan",
+      "subtitle": "Subtítulo",
+      "subtitlePlaceholder": "Elija el plan que mejor se adapte (vacío = predeterminado)",
+      "ctaLabel": "Texto del botón",
+      "ctaLabelPlaceholder": "Seleccionar plan (vacío = predeterminado)",
+      "theme": "Tema de la tarjeta",
+      "themeHint": "Recolorea las tarjetas. Los valores desconocidos usan el tema predeterminado.",
+      "imageUrl": "URL de imagen de la tarjeta",
+      "imageUrlHint": "Icono opcional en la parte superior de cada tarjeta.",
+      "highlightSlug": "Destacar plan",
+      "highlightNone": "— ninguno —",
+      "highlightBadge": "Texto de la insignia",
+      "highlightBadgePlaceholder": "Más Popular (vacío = predeterminado)",
+      "features": "Características (una por línea)",
+      "featuresPlaceholder": "2000 MB de ancho de banda\n5 GB de espacio\nUsuarios ilimitados",
+      "featuresHint": "Se muestra como lista de verificación en cada tarjeta (solo vista de tarjetas)."
     }
   },
   "subscription": {
