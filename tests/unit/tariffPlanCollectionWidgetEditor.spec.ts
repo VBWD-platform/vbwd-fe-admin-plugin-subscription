@@ -226,7 +226,31 @@ describe('TariffPlanCollection presentation config', () => {
       expect(config).toHaveProperty(key);
     }
     expect(Array.isArray(config.features)).toBe(true);
-    expect(config.theme).toBe('default');
+  });
+
+  it('defaults a freshly-created widget to the teal pricing-card look', () => {
+    const config = getDescriptor().defaultConfig();
+    // Mirrors the backend seed's default look (theme "teal" + the 4 native
+    // bullets). highlight_slug stays '' because the default category is empty
+    // and 'pro' is only valid in the root category.
+    expect(config.theme).toBe('teal');
+    expect(config.features).toEqual([
+      'All core platform features',
+      'Unlimited projects',
+      'Priority email support',
+      'Cancel anytime',
+    ]);
+    expect(config.highlight_slug).toBe('');
+  });
+
+  it('buildPreview for the default config reflects the teal theme + features', () => {
+    const descriptor = getDescriptor();
+    const preview = descriptor.buildPreview(descriptor.defaultConfig());
+    // Teal theme primary token (#14b8a6) is present in the emitted styles/html.
+    expect(preview.html + preview.baseStyles).toContain('#14b8a6');
+    // The default 4 feature bullets render in the preview checklist.
+    expect(preview.html).toContain('All core platform features');
+    expect(preview.html).toContain('Cancel anytime');
   });
 
   it('buildPreview marks the emphasized card, its badge and the feature checklist', () => {
