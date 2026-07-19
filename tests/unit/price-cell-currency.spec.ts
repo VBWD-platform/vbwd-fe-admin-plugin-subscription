@@ -99,6 +99,31 @@ describe('subscription-admin price cells follow the operating currency (S99.3)',
     expect(wrapper.text()).toContain('$29.99');
   });
 
+  it('renders the price from the REAL admin wire shape (plain number `price`, no `price_float`)', async () => {
+    setOperatingCurrency('EUR');
+    vi.mocked(api.get).mockResolvedValue({
+      plans: [
+        {
+          id: '1',
+          name: 'Pro',
+          // Real admin API shape: `price` is a plain number, no `price_float`,
+          // no object price, no top-level currency.
+          price: 29.99,
+          billing_period: 'monthly',
+          is_active: true,
+          subscriber_count: 0,
+          created_at: '2025-01-01',
+        },
+      ],
+    });
+
+    const wrapper = mount(Plans, { global: { plugins: [router] } });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('€29.99');
+    expect(wrapper.text()).not.toContain('N/A');
+  });
+
   it('falls back to the operating currency when the addon has none', async () => {
     setOperatingCurrency('USD');
     vi.mocked(api.get).mockResolvedValue({

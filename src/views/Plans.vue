@@ -331,7 +331,7 @@
               <td @click="navigateToPlan(plan.id)">
                 {{ plan.name }}
               </td>
-              <td>{{ formatPrice(plan.price_float, typeof plan.price === 'object' ? plan.price?.currency_code : undefined) }}</td>
+              <td>{{ formatPrice(planPriceValue(plan), planPriceCurrency(plan)) }}</td>
               <td>{{ plan.billing_period }}</td>
               <td>{{ plan.subscriber_count ?? 0 }}</td>
               <td class="categories-cell">
@@ -385,7 +385,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { formatMoney, getOperatingCurrency } from 'vbwd-view-component';
 import { useAuthStore } from '@/stores/auth';
-import { usePlanAdminStore } from '../stores/planAdmin';
+import { usePlanAdminStore, type AdminPlan } from '../stores/planAdmin';
 import { useCategoryAdminStore } from '../stores/categoryAdmin';
 import CategoriesTab from '../components/CategoriesTab.vue';
 
@@ -495,8 +495,8 @@ const sortedPlans = computed(() => {
         bVal = b.name?.toLowerCase() || '';
         break;
       case 'price':
-        aVal = a.price_float ?? 0;
-        bVal = b.price_float ?? 0;
+        aVal = planPriceValue(a) ?? 0;
+        bVal = planPriceValue(b) ?? 0;
         break;
       case 'billing_period':
         aVal = a.billing_period?.toLowerCase() || '';
@@ -573,6 +573,24 @@ async function handleArchive(planId: string): Promise<void> {
   } catch {
     // Error is already set in the store
   }
+}
+
+// Derive the numeric price from whichever wire shape the admin API sends: the
+// real list endpoint returns `price` as a plain number; older/object shapes
+// carry `price.price_float`; a few callers still send a top-level `price_float`.
+function planPriceValue(plan: AdminPlan): number | undefined {
+  if (typeof plan.price === 'number') return plan.price;
+  if (plan.price && typeof plan.price === 'object' && plan.price.price_float != null) {
+    return plan.price.price_float;
+  }
+  return plan.price_float;
+}
+
+// Derive the currency: object price carries its own `currency_code`, else the
+// plan's top-level `currency` (formatPrice falls back to operating currency).
+function planPriceCurrency(plan: AdminPlan): string | undefined {
+  if (plan.price && typeof plan.price === 'object') return plan.price.currency_code;
+  return plan.currency;
 }
 
 function formatPrice(price: number | undefined, currency?: string): string {
